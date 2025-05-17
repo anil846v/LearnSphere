@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      width: 300px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #3073e0;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 0.9em;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .success-message {
+      color: green;
+      font-size: 0.9em;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    #link{
+      color:green;
+      justify-content: center;
+      text-align: center;
+
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <h2>Login</h2>
+    <div id="message"></div>
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button onclick="login()">Login</button>
+    <a id = "link" href = "Register.html">Click here to go to register</a>
+
+    
+  </div>
+
+  <script>
+    // Check login status on page load
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/trainer/validate", {
+          method: "GET",
+          credentials: "include"
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+          redirectUser(data.role);
+        }
+      } catch (err) {
+        console.error("Validation error:", err);
+      }
+    });
+
+    async function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const messageDiv = document.getElementById("message");
+
+      const payload = {
+        email,
+        password
+      };
+
+      try {
+        const res = await fetch("http://localhost:9090/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        messageDiv.textContent = "";
+
+        if (data.status === "success") {
+          messageDiv.textContent = data.message;
+          messageDiv.className = "success-message";
+          redirectUser(data.role);
+        } else {
+          messageDiv.textContent = data.message;
+          messageDiv.className = "error-message";
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        messageDiv.textContent = "Something went wrong!";
+        messageDiv.className = "error-message";
+      }
+    }
+
+    function redirectUser(role) {
+      switch (role.toUpperCase()) {
+        case "TRAINER":
+          window.location.href = "/trainer-dashboard.html";
+          break;
+        case "STUDENT":
+          window.location.href = "/student-dashboard.html";
+          break;
+        default:
+          window.location.href = "/dashboard";
+      }
+    }
+  </script>
+
+</body>
+</html>
